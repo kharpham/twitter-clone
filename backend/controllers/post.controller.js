@@ -1,5 +1,6 @@
 import Post from "../models/post.model.js";
 import Comment from "../models/comment.model.js";
+import Notification from "../models/notification.model.js";
 import { v2 as cloudinary } from "cloudinary";
 import mongoose from "mongoose";
 
@@ -69,6 +70,9 @@ export const commentPost = async (req, res) => {
         await comment.save();
         post.comments.push(comment._id);
         await post.save();
+        // Create notification
+        const notification = new Notification({from: req.user._id, to: post.user, type: "comment"});
+        await notification.save();
         return res.status(201).json({message: "Comment created successfully"})
     } catch (error) {
         if (error instanceof mongoose.Error.CastError && error.path === "_id") {
@@ -93,12 +97,16 @@ export const likeUnlikePost = async (req, res) => {
             await post.save();
             return res.status(200).json({message: "Unlike post successfully"});
         }
+        //Like
         else {
             post.likes.push(userId);
             await post.save();
+            // Create notification
+            const notification = new Notification({from: userId, to: post.user, type:"like"});
+            await notification.save();
             return res.status(200).json({message: "Like post successfully"});
         }
-        //Like
+        
     } catch (error) {
         if (error instanceof mongoose.Error.CastError && error.path === "_id") {
             return res.status(404).json({ error: "Post not found" });
