@@ -78,3 +78,32 @@ export const commentPost = async (req, res) => {
         return res.status(500).json({error: error.message});
     }
 };
+
+export const likeUnlikePost = async (req, res) => {
+    const postId = req.params.id;
+    const userId = req.user._id;
+    try {
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({error: "Post not found"});
+        }
+        // Unlike
+        if (post.likes.includes(userId)) {
+            post.likes = post.likes.filter(user => user._id.toString() !== userId.toString());
+            await post.save();
+            return res.status(200).json({message: "Unlike post successfully"});
+        }
+        else {
+            post.likes.push(userId);
+            await post.save();
+            return res.status(200).json({message: "Like post successfully"});
+        }
+        //Like
+    } catch (error) {
+        if (error instanceof mongoose.Error.CastError && error.path === "_id") {
+            return res.status(404).json({ error: "Post not found" });
+        }
+        console.log("Error in likeUnlikePost controller:", error.message);
+        return res.status(500).json({error: error.message});
+    }
+}
