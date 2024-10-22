@@ -1,4 +1,5 @@
 import Post from "../models/post.model.js";
+import Comment from "../models/comment.model.js";
 import { v2 as cloudinary } from "cloudinary";
 import mongoose from "mongoose";
 
@@ -46,6 +47,34 @@ export const deletePost = async (req, res) => {
             return res.status(404).json({ error: "Post not found" });
         }
         console.log("Error in deletePost controller:", error.message);
+        return res.status(500).json({error: error.message});
+    }
+};
+
+export const commentPost = async (req, res) => {
+    const postId = req.params.id;
+    const {text} = req.body;
+    try {
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({error: "Post not found"});
+        }
+        if (!text) {
+            return res.status(400).json({error: "Text must be required"});
+        }
+        const comment = new Comment({
+            text,
+            user: req.user._id,
+        });
+        await comment.save();
+        post.comments.push(comment._id);
+        await post.save();
+        return res.status(201).json({message: "Comment created successfully"})
+    } catch (error) {
+        if (error instanceof mongoose.Error.CastError && error.path === "_id") {
+            return res.status(404).json({ error: "Post not found" });
+        }
+        console.log("Error in commentPost controller:", error.message);
         return res.status(500).json({error: error.message});
     }
 };

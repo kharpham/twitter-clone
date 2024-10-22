@@ -10,7 +10,7 @@ const commentSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
-    repies: [
+    replies: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Post',
@@ -20,3 +20,5 @@ const commentSchema = new mongoose.Schema({
 }, {timestamps: true});
 
 const Comment = mongoose.model("Comment", commentSchema);
+
+export default Comment;
