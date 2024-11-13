@@ -31,8 +31,8 @@ const CreatePost = () => {
 				
 				return data;
 			} catch (error) {
-				console.log(error.message);
-				toast.error("File format not corrected");
+				console.log(error);
+				toast.error(error.message);
 			}	
 		},
 		onSuccess: () => {
