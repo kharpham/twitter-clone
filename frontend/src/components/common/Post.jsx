@@ -20,7 +20,7 @@ const Post = ({ post }) => {
 					method: "DELETE"
 				});
 				if (!res.ok) {
-					throw new Error(error.message || "Something went wrong");
+					throw new Error(res.message || "Something went wrong");
 				}
 				const data = await res.json();
 				return data;
@@ -44,7 +44,8 @@ const Post = ({ post }) => {
 
 	const isCommenting = false;
 
-	const handleDeletePost = () => {
+	const handleDeletePost = (e) => {
+		e.preventDefault();
 		deletePost();
 	};
 
@@ -74,7 +75,7 @@ const Post = ({ post }) => {
 						</span>
 						{isMyPost && (
 							<span className='flex justify-end flex-1'>
-								{!isPending && <FaTrash className='cursor-pointer hover:text-red-500' onClick={handleDeletePost} />}
+								{!isPending && <FaTrash className='cursor-pointer hover:text-red-500' onClick={ e => handleDeletePost(e)} />}
 								{isPending && <LoadingSpinner size="sm"/>}
 							</span>
 						)}
