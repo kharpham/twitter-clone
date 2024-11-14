@@ -10,8 +10,9 @@ import { POSTS } from "../../utils/db/dummy";
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { MdEdit } from "react-icons/md";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatMemberSinceDate } from "../../utils/date";
+import useFollow from "../../hooks/useFollow";
 
 const ProfilePage = () => {
 	const [coverImg, setCoverImg] = useState(null);
@@ -20,8 +21,7 @@ const ProfilePage = () => {
 
 	const coverImgRef = useRef(null);
 	const profileImgRef = useRef(null);
-
-	const isMyProfile = true;
+	const queryClient = useQueryClient();
 	const {username} = useParams();
 	const {data: user, isLoading, refetch, isRefetching} = useQuery({
 		queryKey: ["userProfile"],
@@ -38,6 +38,10 @@ const ProfilePage = () => {
 			}
 		},
 	});
+	const {data: authUser} = useQuery({
+		queryKey: ["authUser"]
+	});
+	const isMyProfile = authUser?._id === user?._id;
 
 	const handleImgChange = (e, state) => {
 		const file = e.target.files[0];
@@ -54,6 +58,8 @@ const ProfilePage = () => {
 	useEffect(() => {
 		refetch();
 	}, [username, refetch, feedType]);
+
+	const {followUnfollow, isPending} = useFollow();
 
 	return (
 		<>
@@ -121,9 +127,14 @@ const ProfilePage = () => {
 								{!isMyProfile && (
 									<button
 										className='btn btn-outline rounded-full btn-sm'
-										onClick={() => alert("Followed successfully")}
+										onClick={() => {
+											followUnfollow(user?._id);
+											queryClient.invalidateQueries({queryKey: ["authUser"]});
+											
+										}}
 									>
-										Follow
+										{isPending && "Loading..."}
+										{!isPending && !authUser.following.includes(user._id) ? "Follow": "Unfollow"}
 									</button>
 								)}
 								{(coverImg || profileImg) && (
