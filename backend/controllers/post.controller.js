@@ -102,10 +102,11 @@ export const likeUnlikePost = async (req, res) => {
       post.likes = post.likes.filter(
         (user) => user._id.toString() !== userId.toString()
       );
+      await post.save();
       // Update user's like posts
       await User.updateOne({ _id: userId }, { $pull: { likedPosts: postId } });
-      await post.save();
-      return res.status(200).json({ message: "Unlike post successfully" });
+      const updatedLikes = post.likes; 
+      return res.status(200).json({ message: "Unlike post successfully", updatedLikes});
     }
     //Like
     else {
@@ -120,7 +121,8 @@ export const likeUnlikePost = async (req, res) => {
         type: "like",
       });
       await notification.save();
-      return res.status(200).json({ message: "Like post successfully" });
+      const updatedLikes = post.likes;
+      return res.status(200).json({ message: "Like post successfully", updatedLikes });
     }
   } catch (error) {
     if (error instanceof mongoose.Error.CastError && error.path === "_id") {
