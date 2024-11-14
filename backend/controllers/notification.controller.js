@@ -2,12 +2,12 @@ import Notification from "../models/notification.model.js";
 import mongoose from "mongoose";
 export const getNotifications = async (req, res) => {
     try {
-        const notifications = await Notification.find({to: req.user._id}).sort({createdAt: -1})
+        const notifications = await Notification.find({to: req.user._id, from: {$ne: req.user._id} }).sort({createdAt: -1})
         .populate({
             path: 'from',
             select: 'username profileImg',
         });
-        await Notification.updateMany({to: req.user._id}, {read: true});
+        await Notification.updateMany({to: req.user._id, from: {$ne: req.user._id}}, {read: true});
         return res.status(200).json(notifications);
     } catch (error) {
         console.log("Error in getNotifications controller: ", error.message);

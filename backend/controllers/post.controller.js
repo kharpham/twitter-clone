@@ -73,12 +73,15 @@ export const commentPost = async (req, res) => {
     post.comments.push(comment._id);
     await post.save();
     // Create notification
-    const notification = new Notification({
-      from: req.user._id,
-      to: post.user,
-      type: "comment",
-    });
-    await notification.save();
+    if (req.user._id.toString() !== post.user._id.toString()) {
+      const notification = new Notification({
+        from: req.user._id,
+        to: post.user,
+        type: "comment",
+      });
+      await notification.save();
+    }
+    
     // Populate the comments with user details
     const updatedPost = await Post.findById(postId)
       .populate({
@@ -125,12 +128,14 @@ export const likeUnlikePost = async (req, res) => {
       // Update user's like posts
       await User.updateOne({ _id: userId }, { $push: { likedPosts: postId } });
       // Create notification
-      const notification = new Notification({
-        from: userId,
-        to: post.user,
-        type: "like",
-      });
-      await notification.save();
+      if (post.user._id.toString() !== req.user._id.toString()) {
+        const notification = new Notification({
+          from: userId,
+          to: post.user,
+          type: "like",
+        });
+        await notification.save();
+      }
       const updatedLikes = post.likes;
       return res.status(200).json({ message: "Like post successfully", updatedLikes });
     }
