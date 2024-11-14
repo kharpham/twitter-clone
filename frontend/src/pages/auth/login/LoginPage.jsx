@@ -29,15 +29,17 @@ const LoginPage = () => {
 				if (data.error) throw new Error(data.error);
 				console.log(data)				
 			} catch (error) {
-				console.error(error);
-				toast.error(error.message);
+				throw new Error(error.message || "Something went wrong");
 			}
 		},
 		onSuccess: () => {
 			toast.success("Login successful");
 			queryClient.invalidateQueries({queryKey: ["authUser"]});
+		},
+		onError: (error) => {
+			toast.error(error.message);
 		}
-	})
+	});
 
 	const handleSubmit = (e) => {
 		e.preventDefault();

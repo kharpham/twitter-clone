@@ -70,14 +70,53 @@ const Post = ({ post }) => {
 			toast.error(error.message);
 		}
 	})
+
+	const {mutate: commentPost, isPending: isCommenting} = useMutation({
+		mutationFn: async() => {
+			try {
+				const res = await fetch(`/api/posts/comment/${post._id}`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({text: comment})
+				});
+				const data = await res.json();
+				if (!res.ok) {
+					throw new Error(data.error || "Something went wrong");
+				}
+				return data;
+			} catch (error) {
+				throw new Error(error.message || "Somthing went wrong");
+			}
+		},
+		onSuccess: (data) => {
+			console.log(data.updatedComments);
+			toast.success("Comment posted successfully");
+			setComment("");
+			queryClient.setQueryData(["posts"], (oldData) => {
+				return oldData.map(p  => {
+					if (p._id === post._id) {
+						return {
+							...p,
+							comments: data.updatedComments
+						};
+					}
+					return p;
+				})
+			})
+		},
+		onError: (error) => {
+			toast.error(error.message);
+		}
+	});
+
 	const postOwner = post.user;
 	const isLiked = post.likes.includes(authUser._id);
 
 	const isMyPost = post.user._id === authUser._id;
 
 	const formattedDate = "1h";
-
-	const isCommenting = false;
 
 	const handleDeletePost = (e) => {
 		e.preventDefault();
@@ -86,6 +125,8 @@ const Post = ({ post }) => {
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
+		if (isCommenting) return;
+		commentPost();
 	};
 
 	const handleLikePost = () => {
@@ -154,15 +195,15 @@ const Post = ({ post }) => {
 												<div className='avatar'>
 													<div className='w-8 rounded-full'>
 														<img
-															src={comment.user.profileImg || "/avatar-placeholder.png"}
+															src={comment.user?.profileImg || "/avatar-placeholder.png"}
 														/>
 													</div>
 												</div>
 												<div className='flex flex-col'>
 													<div className='flex items-center gap-1'>
-														<span className='font-bold'>{comment.user.fullName}</span>
+														<span className='font-bold'>{comment.user?.fullname}</span>
 														<span className='text-gray-700 text-sm'>
-															@{comment.user.username}
+															@{comment.user?.username}
 														</span>
 													</div>
 													<div className='text-sm'>{comment.text}</div>

@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import RightPanelSkeleton from "../skeletons/RightPanelSkeleton";
 import { useQuery } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 import useFollow from "../../hooks/useFollow";
 import LoadingSpinner from "../common/LoadingSpinner";
 const RightPanel = () => {
@@ -15,7 +14,6 @@ const RightPanel = () => {
 				return data;
 			} catch (error) {
 				console.log(error);
-				toast.error(error.message);
 			}
 		}
 	});

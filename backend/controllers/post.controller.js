@@ -79,7 +79,17 @@ export const commentPost = async (req, res) => {
       type: "comment",
     });
     await notification.save();
-    return res.status(201).json({ message: "Comment created successfully" });
+    // Populate the comments with user details
+    const updatedPost = await Post.findById(postId)
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'user',
+          select: 'fullname profileImg',
+        },
+      });
+
+    return res.status(201).json({ message: "Comment created successfully", updatedComments: updatedPost.comments });
   } catch (error) {
     if (error instanceof mongoose.Error.CastError && error.path === "_id") {
       return res.status(404).json({ error: "Post not found" });
@@ -145,7 +155,7 @@ export const getAllPosts = async (req, res) => {
         path: "comments",
         populate: {
           path: "user",
-          select: "fullname",
+          select: "fullname profileImg",
         },
       });
     if (posts.length === 0) return res.status(200).json([]);
