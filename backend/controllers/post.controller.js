@@ -172,7 +172,8 @@ export const getAllPosts = async (req, res) => {
 };
 
 export const getLikedPosts = async (req, res) => {
-  const user = req.user;
+  const userId = req.params.id;
+  const user = await User.findById(userId);
   try {
     const likedPosts = await Post.find({ _id: { $in: user.likedPosts } })
       .sort({ createdAt: -1 })
