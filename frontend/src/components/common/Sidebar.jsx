@@ -8,7 +8,7 @@ import { BiLogOut } from "react-icons/bi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-const Sidebar = () => {
+const SideBar = () => {
 	const queryClient = useQueryClient();
 	const {mutate} = useMutation({
 		mutationFn: async() => {
@@ -96,4 +96,4 @@ const Sidebar = () => {
 		</div>
 	);
 };
-export default Sidebar;
+export default SideBar;
