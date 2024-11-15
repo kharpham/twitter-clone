@@ -1,4 +1,3 @@
-import toast from 'react-hot-toast';
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -11,9 +10,10 @@ import { FaLink } from 'react-icons/fa';
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { MdEdit } from "react-icons/md";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {  useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatMemberSinceDate } from "../../utils/date";
 import useFollow from "../../hooks/useFollow";
+import useUpdateProfile from '../../hooks/useUpdateProfile';
 
 const ProfilePage = () => {
 	const [coverImg, setCoverImg] = useState(null);
@@ -43,39 +43,7 @@ const ProfilePage = () => {
 		queryKey: ["authUser"]
 	});
 
-	const {mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
-		mutationFn: async () => {
-			try {
-				const res = await fetch(`/api/users/update`, {
-					method: "POST",
-					body: JSON.stringify({
-						coverImg,
-						profileImg
-					}),
-					headers: {
-						"Content-Type": "application/json"
-					}
-				});
-				const data = await res.json();
-				if (!res.ok) {
-					throw new Error(data.error || "Something went wrong");
-				}
-				return data;
-			} catch (error) {
-				throw new Error(error.message || "Something went wrong");
-			}
-		},
-		onSuccess: () => {
-			Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-				queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
-			]);
-			toast.success("Profile updated successfully");
-		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
-	});
+	const {updateProfile, isUpdatingProfile} = useUpdateProfile({coverImg, profileImg});
 	
 
 	const isMyProfile = authUser?._id === user?._id;

@@ -1,9 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import useUpdateProfile from "../../hooks/useUpdateProfile";
 const EditProfileModal = () => {
-	const queryClient = useQueryClient();
 	const [formData, setFormData] = useState({
 		fullname: "",
 		username: "",
@@ -18,36 +16,7 @@ const EditProfileModal = () => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
-	const {mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
-		mutationFn: async () => {
-			try {
-				const res = await fetch(`/api/users/update`, {
-					method: "POST",
-					body: JSON.stringify(formData),
-					headers: {
-						"Content-Type": "application/json"
-					}
-				});
-				const data = await res.json();
-				if (!res.ok) {
-					throw new Error(data.error || "Something went wrong");
-				}
-				return data;
-			} catch (error) {
-				throw new Error(error.message || "Something went wrong");
-			}
-		},
-		onSuccess: () => {
-			Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-				queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
-			]);
-			toast.success("Profile updated successfully");
-		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
-	});
+	const {updateProfile, isUpdatingProfile} = useUpdateProfile(formData);
 	const {data: authUser} = useQuery({
 		queryKey: ["authUser"]
 	});
@@ -88,7 +57,7 @@ const EditProfileModal = () => {
 								placeholder='Full Name'
 								className='flex-1 input border border-gray-700 rounded p-2 input-md'
 								value={formData.fullname}
-								name='fullName'
+								name='fullname'
 								onChange={handleInputChange}
 							/>
 							<input
