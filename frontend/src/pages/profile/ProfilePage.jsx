@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -6,11 +7,11 @@ import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkele
 import EditProfileModal from "./EditProfileModal";
 
 import { POSTS } from "../../utils/db/dummy";
-
+import { FaLink } from 'react-icons/fa';
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { MdEdit } from "react-icons/md";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatMemberSinceDate } from "../../utils/date";
 import useFollow from "../../hooks/useFollow";
 
@@ -41,6 +42,42 @@ const ProfilePage = () => {
 	const {data: authUser} = useQuery({
 		queryKey: ["authUser"]
 	});
+
+	const {mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await fetch(`/api/users/update`, {
+					method: "POST",
+					body: JSON.stringify({
+						coverImg,
+						profileImg
+					}),
+					headers: {
+						"Content-Type": "application/json"
+					}
+				});
+				const data = await res.json();
+				if (!res.ok) {
+					throw new Error(data.error || "Something went wrong");
+				}
+				return data;
+			} catch (error) {
+				throw new Error(error.message || "Something went wrong");
+			}
+		},
+		onSuccess: () => {
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: ["authUser"] }),
+				queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
+			]);
+			toast.success("Profile updated successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message);
+		},
+	});
+	
+
 	const isMyProfile = authUser?._id === user?._id;
 
 	const handleImgChange = (e, state) => {
@@ -140,22 +177,37 @@ const ProfilePage = () => {
 								{(coverImg || profileImg) && (
 									<button
 										className='btn btn-primary rounded-full btn-sm text-white px-4 ml-2'
-										onClick={() => alert("Profile updated successfully")}
+										onClick={() => updateProfile()}
 									>
-										Update
+										{isUpdatingProfile ? "Updating...": "Update"}
 									</button>
 								)}
 							</div>
 
 							<div className='flex flex-col gap-4 mt-14 px-4'>
 								<div className='flex flex-col'>
-									<span className='font-bold text-lg'>{user?.fullName}</span>
+									<span className='font-bold text-lg'>{user?.fullname}</span>
 									<span className='text-sm text-slate-500'>@{user?.username}</span>
 									<span className='text-sm my-1'>{user?.bio}</span>
 								</div>
 
 								<div className='flex gap-2 flex-wrap'>
-									
+								{user?.link && (
+										<div className='flex gap-1 items-center '>
+											<>
+												<FaLink className='w-3 h-3 text-slate-500' />
+												<a
+													href={user?.link}
+													target='_blank'
+													rel='noreferrer'
+													className='text-sm text-blue-500 hover:underline'
+												>
+													{/* Updated this after recording the video. I forgot to update this while recording, sorry, thx. */}
+													{user?.link}
+												</a>
+											</>
+										</div>
+									)}
 									<div className='flex gap-2 items-center'>
 										<IoCalendarOutline className='w-4 h-4 text-slate-500' />
 										<span className='text-sm text-slate-500'>{formatMemberSinceDate(user.createdAt)}</span>
