@@ -154,7 +154,7 @@ export const getAllPosts = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate({
         path: "user",
-        select: "fullname",
+        select: "fullname profileImg",
       })
       .populate({
         path: "comments",
